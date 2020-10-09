@@ -1,0 +1,100 @@
+mysql> create table employee (
+    -> id int NOT NULL AUTO_INCREMENT,
+    -> firstname varchar(255) not null,
+    -> lastname varchar(255),
+    -> gender enum('M', 'F'),
+    -> salary int,
+    -> primary key (id)
+    -> );
+
+Query OK, 0 rows affected (0.34 sec)
+
+===================================================================================================================
+
+mysql> insert into employee (firstname, lastname, gender, salary) values ('ben', 'hoskins', 'M', 70000), ('Mark', 'Hastings', 'M', 60000), ('Steve', 'Pound', 'M', 45000), ('Philip', 'Hastings', 'M', 48000), ('Marry', 'Lam', 'F', 30000),('Valarie', 'Vikings', 'F', 38000), ('John', 'Strom', 'M', 42000);
+
+Query OK, 7 rows affected (0.10 sec)
+Records: 7  Duplicates: 0  Warnings: 0
+
+===================================================================================================================
+
+mysql> select * from employee;
++----+-----------+----------+--------+--------+
+| id | firstname | lastname | gender | salary |
++----+-----------+----------+--------+--------+
+|  1 | ben       | hoskins  | M      |  70000 |
+|  2 | Mark      | Hastings | M      |  60000 |
+|  3 | Steve     | Pound    | M      |  45000 |
+|  4 | Philip    | Hastings | M      |  48000 |
+|  5 | Marry     | Lam      | F      |  30000 |
+|  6 | Valarie   | Vikings  | F      |  38000 |
+|  7 | John      | Strom    | M      |  42000 |
++----+-----------+----------+--------+--------+
+7 rows in set (0.00 sec)
+
+===================================================================================================================
+
+1. How to find the highest salary
+
+
+mysql> select id, max(salary) as salary from employee;
+
+ERROR 1140 (42000): In aggregated query without GROUP BY, expression #1 of SELECT list contains nonaggregated column 'practice.employee.id'; this is incompatible with sql_mode=only_full_group_by
+
+[ Error occured to modify ran the below command ]
+
+mysql> SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));
+Query OK, 0 rows affected (0.00 sec)
+
+In ubuntu
+
+https://stackoverflow.com/questions/41887460/select-list-is-not-in-group-by-clause-and-contains-nonaggregated-column-inc
+
+
+mysql> select *, max(salary) from employee;
++----+-----------+----------+--------+--------+-------------+
+| id | firstname | lastname | gender | salary | max(salary) |
++----+-----------+----------+--------+--------+-------------+
+|  1 | ben       | hoskins  | M      |  70000 |       70000 |
++----+-----------+----------+--------+--------+-------------+
+1 row in set (0.00 sec)
+
+===================================================================================================================
+
+2. To find the second highest salary
+
+mysql> select *, max(salary) as second_highest
+    -> from employee
+    -> where salary < (select max(salary) from employee);
+
++----+-----------+----------+--------+--------+----------------+
+| id | firstname | lastname | gender | salary | second_highest |
++----+-----------+----------+--------+--------+----------------+
+|  2 | Mark      | Hastings | M      |  60000 |          60000 |
++----+-----------+----------+--------+--------+----------------+
+1 row in set (0.00 sec)
+
+===================================================================================================================
+
+3. To find the nth highest salary
+
+	- SUB Query
+
+mysql> select * from employee where salary = (select distinct(salary) from employee order by salary asc limit 4,1);
++----+-----------+----------+--------+--------+
+| id | firstname | lastname | gender | salary |
++----+-----------+----------+--------+--------+
+|  4 | Philip    | Hastings | M      |  48000 |
++----+-----------+----------+--------+--------+
+1 row in set (0.00 sec)
+
+
+General syntax
+
+SELECT * FROM employee 
+WHERE salary= (SELECT DISTINCT(salary) 
+FROM employee ORDER BY salary LIMIT n-1,1);
+
+LIMIT is for MySQL similarly there are other option in different databases
+
+===================================================================================================================
